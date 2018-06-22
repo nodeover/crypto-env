@@ -1,0 +1,7 @@
+version: '2' 
+services:
+  crypto-env-gobyte:
+    image: crypto-env:latest
+    container_name: crypto-env-gobyte
+    volumes:
+      - ./gobyte:/home/crypto/gobyte
