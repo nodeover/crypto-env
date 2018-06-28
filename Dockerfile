@@ -39,6 +39,7 @@ RUN apt-get install -y\
     # libminiupnpc-dev \
 
 #pip install
+RUN pip install --upgrade pip
 RUN pip install virtualenv
 
 # ports

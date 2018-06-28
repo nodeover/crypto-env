@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#tail -f /dev/null
+tail -f /dev/null
 
 
 
