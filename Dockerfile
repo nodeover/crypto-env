@@ -1,68 +1,63 @@
-FROM ubuntu-upstart:latest
+FROM ubuntu:xenial
 
-# MAINTAINER
 MAINTAINER Alex
 
-## USER SETTINGS
-RUN useradd -m crypto
-# RUN usermod -a -G adm,dialout,cdrom,sudo,audio,video,plugdev,netdev crypto
-RUN usermod -a -G adm,dialout,cdrom,sudo,audio,video,plugdev crypto
-
-## AUTHENTICATION SETTINGS
-RUN mkdir /home/crypto/.ssh -p
-RUN touch /home/crypto/.ssh/authorized_keys
-RUN echo '\
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCoY6oQ7jkiFbmlVMgStQ/fCqQWjBsa0m/hmreC547CAS3q9zco570aufcCskdyfGfJJYBNQ5sWJJHvo8l4sk1hqdAW1+AkGERseRrnzerhOWEXfESjLAkypZ1Bxf7Sh78czkBsOiXO2i2gxXZlWG/6UPkUnqqaGVvQr6d3QjQ2w2lpoM8utUENKQqu3a6A2CiaGsG1qi5fbSpVfIFxuyaMN7XqsLzt5fCYLu6+3VIbWE5g+VHuZxvIF/PKddpJKx4RiG/Rf9wsJtUXxiUciYkGrh/8WqXIhvf7yiL8YufH1aPPlKsGMtCipSaZdL5mYQhbnPQOqxzKbJ/4Ips1K3df ALEX\
-' > /home/crypto/.ssh/authorized_keys
-RUN chown crypto.crypto /home/crypto/.ssh/authorized_keys
-RUN chmod 600 /home/crypto/.ssh/authorized_keys
-RUN chown crypto.crypto /home/crypto/.ssh -R
-RUN chmod 700 /home/crypto/.ssh
-
-## APT-GET CHECK
+RUN bash
+# apt-get init
 RUN sed -i 's/archive.ubuntu.com/ftp.daum.net/g' /etc/apt/sources.list
 RUN apt-get update
-RUN apt-get upgrade -y
 
-## INSTALL DEFAULT PACKAGES
+# user settings
+RUN useradd -m crypto
+RUN apt-get install sudo
+RUN echo 'crypto ALL=NOPASSWD: ALL' >> /etc/sudoers
+
+# apt-get installs
 RUN apt-get install -y\
-		build-essential \
-		bsdmainutils \
-		git-core \
-		vim \
-		libtool \
-		autotools-dev \
-		autoconf \
-		pkg-config \
-		libssl-dev
-
+	build-essential \
+	libtool \
+	autotools-dev \
+	automake \
+	pkg-config \
+	libssl-dev \
+	libevent-dev \
+	bsdmainutils \
+	python3 \
+	libboost-system-dev \
+	libboost-filesystem-dev \
+	libboost-chrono-dev \
+	libboost-program-options-dev \
+	libboost-test-dev \
+	libboost-thread-dev
+RUN apt-get install -y python-pip
 RUN apt-get install -y software-properties-common
 RUN add-apt-repository ppa:bitcoin/bitcoin
 RUN apt-get update
 RUN apt-get install -y\
-		libdb4.8-dev \
-		libdb4.8++-dev \
-		libboost-all-dev \
-		libminiupnpc-dev \
-		libevent-dev
+    libdb4.8-dev \
+    libdb4.8++-dev
+    # libminiupnpc-dev \
 
-## ENVIRONMENTS
-ENV APP_NAME 'crypto-env'
-ENV PYTHONIOENCODING 'utf8'
+#pip install
+RUN pip install virtualenv
 
-# Entry Point.
-ADD ./entrypoint.sh /usr/local/bin/
+# ports
+# EXPOSE
+
+# apt cache clear
+USER root
+RUN rm -rf /var/lib/apt/lists/*
+
+# entrypoint
 WORKDIR /usr/local/bin
+ADD entrypoint.sh /usr/local/bin/
 RUN chmod +x entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
 
-RUN echo 'crypto ALL=NOPASSWD: ALL' >> /etc/sudoers
+# env
+ENV APP_NAME 'crypto-env'
+ENV PYTHONIOENCODING 'utf8'
 
-# EXPOSE
-EXPOSE 22
-
-## FINALY
+# final
 USER crypto
 WORKDIR /home/crypto
-
-
